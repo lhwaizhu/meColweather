@@ -119,6 +119,37 @@ public class WeatherActivity extends AppCompatActivity
             }
         });
     }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        String weatherString=sharedPreferences.getString("weather",null);
+        String bingPic=sharedPreferences.getString("bing_pic",null);
+        if(bingPic!=null)
+        {
+            Glide.with(this).load(bingPic).into(bingPicImg);
+        }
+        else
+        {
+            loadBingPic();
+        }
+        if(weatherString!=null)
+        {
+            Weather weather= Utility.handleWeatherResponse(weatherString);
+            weatherIdd=weather.basic.weatherId;
+            showWeatherInto(weather);
+        }
+        else
+        {
+            weatherIdd=getIntent().getStringExtra("weather_id");
+            weatherLayout.setVisibility(View.INVISIBLE);
+            requestWeather(weatherIdd);
+        }
+
+    }
+
     public void requestWeather(final String weatherId)
     {
         String weatherUrl="http://guolin.tech/api/weather?cityid=" +
