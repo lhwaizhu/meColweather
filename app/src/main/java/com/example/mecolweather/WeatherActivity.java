@@ -48,6 +48,7 @@ public class WeatherActivity extends AppCompatActivity
     private TextView carWashText;
     private TextView sportText;
     private ImageView bingPicImg;
+    private ImageView nowImage;
     public SwipeRefreshLayout swipeRefreshLayout;
     public String weatherIdd;
     public DrawerLayout drawerLayout;
@@ -80,6 +81,7 @@ public class WeatherActivity extends AppCompatActivity
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
         drawerLayout=(DrawerLayout)findViewById(R.id.drawer_layout);
         navButton=(Button)findViewById(R.id.nav_button);
+        nowImage=(ImageView)findViewById(R.id.now_image);
         SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString=sharedPreferences.getString("weather",null);
         String bingPic=sharedPreferences.getString("bing_pic",null);
@@ -246,6 +248,26 @@ public class WeatherActivity extends AppCompatActivity
         titleCity.setText(cityName);
         titleUpdateTime.setText(updateTime);
         degreeText.setText(degree);
+        switch(weatherInfo)
+        {
+            case "晴":
+                    nowImage.setImageResource(R.drawable.qing);
+                    break;
+            case "多云":
+                    nowImage.setImageResource(R.drawable.duoyun);
+                    break;
+            case "小雨":
+                    nowImage.setImageResource(R.drawable.xiaoyu);
+                    break;
+            case "大雨":
+                    nowImage.setImageResource(R.drawable.dayu);
+                    break;
+            case "雷阵雨":
+                    nowImage.setImageResource(R.drawable.leizhenyu);
+                    break;
+            default:nowImage.setImageResource(R.mipmap.logo);
+                    break;
+        }
         weatherInfoText.setText(weatherInfo);
         forecastLayout.removeAllViews();
         for(Forecast forecast:weather.forecastList)
@@ -256,10 +278,29 @@ public class WeatherActivity extends AppCompatActivity
             TextView infoText=(TextView)view.findViewById(R.id.info_text);
             TextView maxText=(TextView)view.findViewById(R.id.max_text);
             TextView minText=(TextView)view.findViewById(R.id.min_text);
+            ImageView forecastItemImage=(ImageView)view.findViewById(R.id.forecast_item_image);
+            switch(forecast.more.info)
+            {
+                case "晴":
+                    forecastItemImage.setImageResource(R.drawable.qing);
+                    break;
+                case "多云":
+                    forecastItemImage.setImageResource(R.drawable.duoyun);
+                    break;
+                case "小雨":
+                    forecastItemImage.setImageResource(R.drawable.xiaoyu);
+                    break;
+                case "雷阵雨":
+                    forecastItemImage.setImageResource(R.drawable.leizhenyu);
+                    break;
+                default:
+                    forecastItemImage.setImageResource(R.mipmap.logo);
+                    break;
+            }
             dateText.setText(forecast.date);
             infoText.setText(forecast.more.info);
-            maxText.setText(forecast.temperature.max);
-            minText.setText(forecast.temperature.min);
+            maxText.setText(forecast.temperature.max+"℃");
+            minText.setText(forecast.temperature.min+"℃");
             forecastLayout.addView(view);
         }
         if(weather.aqi!=null)

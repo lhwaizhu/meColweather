@@ -13,6 +13,13 @@
         android:layout_gravity="center_vertical"
         android:textColor="#fff"
         />
+    <ImageView
+        android:id="@+id/forecast_item_image"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:layout_weight="1"
+        android:layout_gravity="center_horizontal"
+        />
     <TextView
         android:id="@+id/info_text"
         android:layout_width="0dp"
@@ -22,6 +29,7 @@
         android:gravity="center"
         android:textColor="#fff"
         />
+
     <TextView
         android:id="@+id/max_text"
         android:layout_width="0dp"
@@ -32,6 +40,15 @@
         android:textColor="#fff"
         />
     <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:gravity="right"
+        android:textColor="#fff"
+        android:text="--"
+        />
+    <TextView
         android:id="@+id/min_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -40,4 +57,5 @@
         android:gravity="right"
         android:textColor="#fff"
         />
+
 </LinearLayout>
