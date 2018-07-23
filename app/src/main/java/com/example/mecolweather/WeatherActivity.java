@@ -10,6 +10,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -25,6 +27,7 @@ import com.bumptech.glide.Glide;
 import com.example.mecolweather.gson.Forecast;
 import com.example.mecolweather.gson.Weather;
 import com.example.mecolweather.service.AutoUpdateService;
+import com.example.mecolweather.util.HForecastAdapter;
 import com.example.mecolweather.util.HttpUtil;
 import com.example.mecolweather.util.Utility;
 
@@ -53,6 +56,8 @@ public class WeatherActivity extends AppCompatActivity
     public String weatherIdd;
     public DrawerLayout drawerLayout;
     private Button navButton;
+   // private Weather weatherAll;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -82,6 +87,11 @@ public class WeatherActivity extends AppCompatActivity
         drawerLayout=(DrawerLayout)findViewById(R.id.drawer_layout);
         navButton=(Button)findViewById(R.id.nav_button);
         nowImage=(ImageView)findViewById(R.id.now_image);
+        recyclerView=(RecyclerView)findViewById(R.id.recycler_view);
+        LinearLayoutManager layoutManager=new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        recyclerView.setLayoutManager(layoutManager);
+
         SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString=sharedPreferences.getString("weather",null);
         String bingPic=sharedPreferences.getString("bing_pic",null);
@@ -238,11 +248,10 @@ public class WeatherActivity extends AppCompatActivity
     }
     private void showWeatherInto(Weather weather)
     {
+        HForecastAdapter hForecastAdapter=new HForecastAdapter(weather.hForecastList);
+        recyclerView.setAdapter(hForecastAdapter);
         String cityName=weather.basic.cityName;
         String updateTime=weather.basic.update.updateTime.split(" ")[1];
-     //   Log.d("活动",weather.basic.update.updateTime);
-       // Log.d("活动",weather.basic.update.updateTime.split(" ")[0]);
-        //Log.d("活动",weather.basic.update.updateTime.split(" ")[1]);
         String degree=weather.now.temperature+"℃";
         String weatherInfo=weather.now.more.info;
         titleCity.setText(cityName);
@@ -257,12 +266,18 @@ public class WeatherActivity extends AppCompatActivity
                     nowImage.setImageResource(R.drawable.duoyun);
                     break;
             case "小雨":
+            case "中雨":
                     nowImage.setImageResource(R.drawable.xiaoyu);
                     break;
             case "大雨":
                     nowImage.setImageResource(R.drawable.dayu);
                     break;
+            case "阴":
+                    nowImage.setImageResource(R.drawable.yin);
+                    break;
             case "雷阵雨":
+            case "雷雨":
+            case "暴雨":
                     nowImage.setImageResource(R.drawable.leizhenyu);
                     break;
             default:nowImage.setImageResource(R.mipmap.logo);
@@ -287,10 +302,19 @@ public class WeatherActivity extends AppCompatActivity
                 case "多云":
                     forecastItemImage.setImageResource(R.drawable.duoyun);
                     break;
+                case "阴":
+                    forecastItemImage.setImageResource(R.drawable.yin);
+                    break;
                 case "小雨":
+                case "中雨":
                     forecastItemImage.setImageResource(R.drawable.xiaoyu);
                     break;
+                case "大雨":
+                    forecastItemImage.setImageResource(R.drawable.dayu);
+                    break;
                 case "雷阵雨":
+                case "雷雨":
+                case "暴雨":
                     forecastItemImage.setImageResource(R.drawable.leizhenyu);
                     break;
                 default:
