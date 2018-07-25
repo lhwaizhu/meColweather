@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import com.example.mecolweather.gson.Weather;
 import com.example.mecolweather.util.HttpUtil;
@@ -33,10 +34,14 @@ public class AutoUpdateService extends Service
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
+        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean update=sharedPreferences.getBoolean("update_pic",true);
+        //Toast.makeText(this,update.toString(),Toast.LENGTH_SHORT).show();
         updateWeather();
-        updateBingPic();
+        if(update)
+            updateBingPic();
         AlarmManager manager=(AlarmManager)getSystemService(ALARM_SERVICE);
-        int anHour=30*60*1000;
+        int anHour=4*60*60*1000;
         long triggerAtTime= SystemClock.elapsedRealtime()+anHour;
         Intent i=new Intent(this,AutoUpdateService.class);
         PendingIntent pi=PendingIntent.getService(this,0,i,0);

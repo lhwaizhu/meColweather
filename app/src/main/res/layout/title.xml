@@ -12,6 +12,15 @@
         android:layout_centerInParent="true"
         android:background="@drawable/ic_home"
         />
+    <Button
+        android:id="@+id/setting_button"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerInParent="true"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/set"
+        />
     <TextView
         android:id="@+id/title_city"
         android:layout_width="wrap_content"
@@ -26,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
-        android:layout_marginRight="15dp"
+        android:layout_marginRight="60dp"
         android:textColor="#fff"
         android:textSize="16sp" />
 

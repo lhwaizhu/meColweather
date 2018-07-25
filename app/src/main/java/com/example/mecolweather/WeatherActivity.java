@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.media.Image;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -56,13 +57,15 @@ public class WeatherActivity extends AppCompatActivity
     public String weatherIdd;
     public DrawerLayout drawerLayout;
     private Button navButton;
-   // private Weather weatherAll;
+    private Button settingButton;
     private RecyclerView recyclerView;
-
+    public Boolean update;
+    public String imagePath;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+       // Log.d("曹操","操死你create");
         if(Build.VERSION.SDK_INT>=21)
         {
             View decorView=getWindow().getDecorView();
@@ -87,6 +90,7 @@ public class WeatherActivity extends AppCompatActivity
         drawerLayout=(DrawerLayout)findViewById(R.id.drawer_layout);
         navButton=(Button)findViewById(R.id.nav_button);
         nowImage=(ImageView)findViewById(R.id.now_image);
+        settingButton=(Button)findViewById(R.id.setting_button);
         recyclerView=(RecyclerView)findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager=new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -95,13 +99,22 @@ public class WeatherActivity extends AppCompatActivity
         SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString=sharedPreferences.getString("weather",null);
         String bingPic=sharedPreferences.getString("bing_pic",null);
-        if(bingPic!=null)
-        {
-            Glide.with(this).load(bingPic).into(bingPicImg);
+        update=sharedPreferences.getBoolean("update_pic",true);
+        imagePath=sharedPreferences.getString("album",null);
+        if(update) {
+            if (bingPic != null) {
+                Glide.with(this).load(bingPic).into(bingPicImg);
+            } else {
+                loadBingPic();
+            }
         }
         else
         {
-            loadBingPic();
+            //加载相册的图片
+            if(imagePath==null)
+                Glide.with(this).load(bingPic).into(bingPicImg);
+            else
+                Glide.with(this).load(imagePath).into(bingPicImg);
         }
         if(weatherString!=null)
         {
@@ -130,22 +143,55 @@ public class WeatherActivity extends AppCompatActivity
                 drawerLayout.openDrawer(Gravity.START);
             }
         });
+        settingButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                Intent intent=new Intent(WeatherActivity.this,SettingActivity.class);
+                startActivityForResult(intent,1);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    {
+        switch(requestCode)
+        {
+            case 1:
+                if(resultCode==RESULT_OK)
+                {
+                    String returnData=data.getStringExtra("data_return");
+                    Toast.makeText(this,returnData,Toast.LENGTH_SHORT).show();
+                }
+        }
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
+      //  Log.d("曹操","操死你resume");
         SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString=sharedPreferences.getString("weather",null);
         String bingPic=sharedPreferences.getString("bing_pic",null);
-        if(bingPic!=null)
-        {
-            Glide.with(this).load(bingPic).into(bingPicImg);
+        update=sharedPreferences.getBoolean("update_pic",true);
+        imagePath=sharedPreferences.getString("album",null);
+        if(update) {
+            if (bingPic != null) {
+                Glide.with(this).load(bingPic).into(bingPicImg);
+            } else {
+                loadBingPic();
+            }
         }
         else
         {
-            loadBingPic();
+          //  Log.d("曹操","操死你resume");
+            if(imagePath==null)
+                Glide.with(this).load(bingPic).into(bingPicImg);
+            else
+                Glide.with(this).load(imagePath).into(bingPicImg);
         }
         if(weatherString!=null)
         {
