@@ -11,7 +11,7 @@
         android:text="短时预报"
         android:layout_marginLeft="15dp"
         android:layout_marginTop="10dp"
-        android:textColor="#fff"
+        android:textStyle="bold"
         android:textSize="20sp"
         />
     <android.support.v7.widget.RecyclerView

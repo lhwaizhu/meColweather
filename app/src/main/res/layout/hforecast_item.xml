@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="3dp"
-        android:textColor="#fff"
+        android:textStyle="bold"
         />
     <ImageView
         android:id="@+id/hforecast_image"
@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="3dp"
-        android:textColor="#fff"
+        android:textStyle="bold"
         />
     <TextView
         android:id="@+id/hforecast_time"
@@ -33,6 +33,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="3dp"
-        android:textColor="#fff"
+        android:textStyle="bold"
         />
 </LinearLayout>

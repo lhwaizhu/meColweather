@@ -41,6 +41,28 @@
                     android:layout_centerInParent="true"
                     android:text="设置"
                     android:textSize="23dp"
+                    android:textStyle="bold"
+                    />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginLeft="20dp"
+                    android:text="使用系统自带背景"
+                    android:textSize="20dp"
+                    />
+                <Switch
+                    android:id="@+id/background_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginRight="25dp"
                     />
             </RelativeLayout>
             <RelativeLayout
@@ -100,12 +122,18 @@
                     android:layout_alignParentLeft="true"
                     android:text="收藏的城市"
                     />
+                <ProgressBar
+                    android:id="@+id/setting_progress_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    />
                 <ListView
                     android:id="@+id/list_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignTop="@id/love_city"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="40dp"
                     android:layout_marginLeft="10dp"
                     />
             </RelativeLayout>

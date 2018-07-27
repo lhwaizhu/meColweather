@@ -1,11 +1,13 @@
 package com.example.mecolweather;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.Image;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -16,8 +18,10 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -25,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.mecolweather.db.FavorateDb;
 import com.example.mecolweather.gson.Forecast;
 import com.example.mecolweather.gson.Weather;
 import com.example.mecolweather.service.AutoUpdateService;
@@ -32,7 +37,11 @@ import com.example.mecolweather.util.HForecastAdapter;
 import com.example.mecolweather.util.HttpUtil;
 import com.example.mecolweather.util.Utility;
 
+import org.litepal.crud.DataSupport;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -61,6 +70,12 @@ public class WeatherActivity extends AppCompatActivity
     private RecyclerView recyclerView;
     public Boolean update;
     public String imagePath;
+    public SharedPreferences sharedPreferences;
+    public Button likeView;
+    public Boolean backGround;
+    static public List<Favorate> favorateList;
+    static public FavorateAdapter favorateAdapter;
+    private List<FavorateDb> favorateDbList;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -92,33 +107,60 @@ public class WeatherActivity extends AppCompatActivity
         nowImage=(ImageView)findViewById(R.id.now_image);
         settingButton=(Button)findViewById(R.id.setting_button);
         recyclerView=(RecyclerView)findViewById(R.id.recycler_view);
+        likeView=(Button)findViewById(R.id.like);
         LinearLayoutManager layoutManager=new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(layoutManager);
-
-        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString=sharedPreferences.getString("weather",null);
         String bingPic=sharedPreferences.getString("bing_pic",null);
         update=sharedPreferences.getBoolean("update_pic",true);
         imagePath=sharedPreferences.getString("album",null);
-        if(update) {
-            if (bingPic != null) {
-                Glide.with(this).load(bingPic).into(bingPicImg);
-            } else {
-                loadBingPic();
+        backGround=sharedPreferences.getBoolean("background",true);
+        favorateList=new ArrayList<>();
+        favorateDbList=DataSupport.findAll(FavorateDb.class);
+        if(favorateDbList.size()>0)
+        {
+          //  favorateList.clear();
+            for(FavorateDb favorateDb:favorateDbList)
+            {
+                Favorate favorate=new Favorate();
+                favorate.setCityName(favorateDb.getCityName());
+                favorate.setDegree(favorateDb.getDegree());
+                favorate.setUpdateTime(favorateDb.getUpdateTime());
+                favorate.setWeatherId(favorateDb.getWeatherId());
+                favorate.setWeatherInfo(favorateDb.getWeatherInfo());
+                favorateList.add(favorate);
             }
         }
-        else
+        favorateAdapter=new FavorateAdapter(this,R.layout.favorate_item,
+                WeatherActivity.favorateList);
+
+        if(backGround)
         {
-            //加载相册的图片
-            if(imagePath==null)
-                Glide.with(this).load(bingPic).into(bingPicImg);
-            else
-                Glide.with(this).load(imagePath).into(bingPicImg);
+           // Log.d("曹操","create backGround");
+            Glide.with(this).load(R.drawable.backgorund).into(bingPicImg);
+        }
+        else {
+            if (update) {
+                if (bingPic != null) {
+                    Glide.with(this).load(bingPic).into(bingPicImg);
+                } else {
+                    loadBingPic();
+                }
+            } else {
+                if (imagePath == null)
+                    Glide.with(this).load(bingPic).into(bingPicImg);
+                else
+                    Glide.with(this).load(imagePath).into(bingPicImg);
+            }
         }
         if(weatherString!=null)
         {
+            //Log.d("曹操create",weatherString);
+
             Weather weather= Utility.handleWeatherResponse(weatherString);
+           // Log.d("曹操","create"+weather.basic.weatherId);
             weatherIdd=weather.basic.weatherId;
             showWeatherInto(weather);
         }
@@ -149,69 +191,121 @@ public class WeatherActivity extends AppCompatActivity
             public void onClick(View view)
             {
                 Intent intent=new Intent(WeatherActivity.this,SettingActivity.class);
-                startActivityForResult(intent,1);
+                startActivity(intent);
+            }
+        });
+        likeView.setOnClickListener(new View.OnClickListener()
+        {
+           // Boolean flag=false; //每次点击直接进入onClick 不会再执行这一句
+
+            @Override
+            public void onClick(View view)
+            {
+              //  Log.d("曹操",favorateList.size()+"");
+                Boolean flag=true;
+                sharedPreferences= PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                String weatherString=sharedPreferences.getString("weather",null);
+                Weather weather= Utility.handleWeatherResponse(weatherString);
+                for (Favorate favorate : favorateList) {
+                    if (weather.basic.cityName.equals(favorate.cityName)) {
+
+                        likeView.setBackgroundResource(R.drawable.unlike);
+                        favorateList.remove(favorate);//如果已经收藏过了 这里点击就是移除
+                        //adapter.notify 通知收藏的list更新
+                        favorateAdapter.notifyDataSetChanged();
+                        flag = false;
+                        break; }
+                }
+                if(flag)
+                {
+                    Favorate favorate = new Favorate();
+                    favorate.cityName = weather.basic.cityName;
+                    favorate.degree = weather.now.temperature;
+                    favorate.updateTime = weather.basic.update.updateTime;
+                    favorate.weatherInfo = weather.now.more.info;
+                    favorate.weatherId=weather.basic.weatherId;
+                    likeView.setBackgroundResource(R.drawable.like);
+                    favorateList.add(favorate);
+                    //adapter.notify 通知收藏的list更新
+                    favorateAdapter.notifyDataSetChanged();
+                }
             }
         });
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    protected void onDestroy()
     {
-        switch(requestCode)
+        super.onDestroy();
+        DataSupport.deleteAll(FavorateDb.class);
+        for(Favorate favorate:favorateList)
         {
-            case 1:
-                if(resultCode==RESULT_OK)
-                {
-                    String returnData=data.getStringExtra("data_return");
-                    Toast.makeText(this,returnData,Toast.LENGTH_SHORT).show();
-                }
+            FavorateDb favorateDb=new FavorateDb();
+            favorateDb.setCityName(favorate.getCityName());
+            favorateDb.setDegree(favorate.getDegree());
+            favorateDb.setWeatherId(favorate.getWeatherId());
+            favorateDb.setUpdateTime(favorate.getUpdateTime());
+            favorateDb.setWeatherInfo(favorate.getWeatherInfo());
+            favorateDb.save();
         }
     }
 
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-      //  Log.d("曹操","操死你resume");
-        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherString=sharedPreferences.getString("weather",null);
-        String bingPic=sharedPreferences.getString("bing_pic",null);
-        update=sharedPreferences.getBoolean("update_pic",true);
-        imagePath=sharedPreferences.getString("album",null);
-        if(update) {
-            if (bingPic != null) {
-                Glide.with(this).load(bingPic).into(bingPicImg);
-            } else {
-                loadBingPic();
+        @Override
+        protected void onResume()
+        {
+            super.onResume();
+            //Log.d("曹操","操死你resume");
+
+            sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+            String weatherString=sharedPreferences.getString("weather",null);
+            String bingPic=sharedPreferences.getString("bing_pic",null);
+            update=sharedPreferences.getBoolean("update_pic",true);
+            imagePath=sharedPreferences.getString("album",null);
+            backGround=sharedPreferences.getBoolean("background",true);
+            if(backGround)
+            {
+               // Log.d("曹操","resume backGround");
+                Glide.with(this).load(R.drawable.backgorund).into(bingPicImg);
             }
-        }
-        else
-        {
-          //  Log.d("曹操","操死你resume");
-            if(imagePath==null)
-                Glide.with(this).load(bingPic).into(bingPicImg);
+            else {
+                if (update) {
+                    if (bingPic != null) {
+                        Glide.with(this).load(bingPic).into(bingPicImg);
+                    } else {
+                        loadBingPic();
+                    }
+                } else {
+                    if (imagePath == null)
+                        Glide.with(this).load(bingPic).into(bingPicImg);
+                    else
+                        Glide.with(this).load(imagePath).into(bingPicImg);
+                }
+            }
+            if(weatherString!=null)
+            {
+                //Log.d("曹操resume",weatherString);
+                Weather weather= Utility.handleWeatherResponse(weatherString);
+               // Log.d("曹操","resume"+weather.basic.weatherId);
+                weatherIdd=weather.basic.weatherId;
+                showWeatherInto(weather);
+            }
             else
-                Glide.with(this).load(imagePath).into(bingPicImg);
-        }
-        if(weatherString!=null)
-        {
-            Weather weather= Utility.handleWeatherResponse(weatherString);
-            weatherIdd=weather.basic.weatherId;
-            showWeatherInto(weather);
-        }
-        else
-        {
-            weatherIdd=getIntent().getStringExtra("weather_id");
-            weatherLayout.setVisibility(View.INVISIBLE);
-            requestWeather(weatherIdd);
-        }
+            {
+                weatherIdd=getIntent().getStringExtra("weather_id");
+                weatherLayout.setVisibility(View.INVISIBLE);
+                requestWeather(weatherIdd);
+            }
 
-    }
+        }
 
     public void requestWeather(final String weatherId)
     {
+/*
         String weatherUrl="http://guolin.tech/api/weather?cityid=" +
                 weatherId+"&key=bc0418b57b2d4918819d3974ac1285d9";
+           */
+        String weatherUrl="http://guolin.tech/api/weather?cityid=" +
+                weatherId+"&key=6632e52493e945b6b70ef5b811b83bef";
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e)
@@ -281,6 +375,7 @@ public class WeatherActivity extends AppCompatActivity
                         getDefaultSharedPreferences(WeatherActivity.this).edit();
                 editor.putString("bing_pic",bingPic);
                 editor.apply();
+                /*
                 runOnUiThread(new Runnable(){
 
                     @Override
@@ -289,15 +384,27 @@ public class WeatherActivity extends AppCompatActivity
                         Glide.with(WeatherActivity.this).load(bingPic).into(bingPicImg);
                     }
                 });
+                */
             }
         });
     }
     private void showWeatherInto(Weather weather)
     {
+        likeView.setBackgroundResource(R.drawable.unlike);
+        for (Favorate favorate : favorateList)
+        {
+            if (weather.basic.cityName.equals(favorate.cityName))
+            {
+                likeView.setBackgroundResource(R.drawable.like);
+                break;
+            }
+        }
         HForecastAdapter hForecastAdapter=new HForecastAdapter(weather.hForecastList);
         recyclerView.setAdapter(hForecastAdapter);
         String cityName=weather.basic.cityName;
         String updateTime=weather.basic.update.updateTime.split(" ")[1];
+       // Log.d("曹操",weather.basic.update.updateTime);
+
         String degree=weather.now.temperature+"℃";
         String weatherInfo=weather.now.more.info;
         titleCity.setText(cityName);
